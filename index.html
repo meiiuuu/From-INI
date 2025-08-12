@@ -20,25 +20,33 @@
   <ul id="results"></ul>
 
   <script>
-    const csvUrl = 'https://docs.google.com/spreadsheets/d/1DuVBQdcDBXMBGCn7J24QSPxBIhLNsUzbgEfAwmrxvZw/export?format=csv';
+    const csvUrls = [
+      'https://docs.google.com/spreadsheets/d/1DuVBQdcDBXMBGCn7J24QSPxBIhLNsUzbgEfAwmrxvZw/export?format=csv&gid=0',
+      'https://docs.google.com/spreadsheets/d/1DuVBQdcDBXMBGCn7J24QSPxBIhLNsUzbgEfAwmrxvZw/export?format=csv&gid=407245644'
+    ];
 
-    async function fetchCSV() {
-      const res = await fetch(csvUrl);
+    async function fetchCSV(url) {
+      const res = await fetch(url);
       const text = await res.text();
-      const rows = text.trim().split('\n').map(row => row.split(','));
-      return rows;
+      return text.trim().split('\n').map(row => row.split(','));
+    }
+
+    async function fetchAllData() {
+      const dataArrays = await Promise.all(csvUrls.map(url => fetchCSV(url)));
+      // dataArraysは二次元配列の配列だから平坦化する（ヘッダーは1回だけ使う）
+      const [header, ...rows1] = dataArrays[0];
+      const [, ...rows2] = dataArrays[1];
+      return { header, rows: rows1.concat(rows2) };
     }
 
     async function search() {
       const input = document.getElementById('searchInput').value.toLowerCase();
-      const members = input.split(/[,\s]+/).filter(Boolean); // カンマや空白で分割して配列に
+      const members = input.split(/[,\s]+/).filter(Boolean);
 
-      const data = await fetchCSV();
-      const header = data[0];
-      const rows = data.slice(1);
+      const { header, rows } = await fetchAllData();
 
-      const results = rows.filter(row => 
-        members.every(member => 
+      const results = rows.filter(row =>
+        members.every(member =>
           row.some(cell => cell.toLowerCase().includes(member))
         )
       );
