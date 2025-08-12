@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>From INIラジオ検索</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    h1 { color: #4a148c; }
+    input, button { font-size: 1rem; padding: 8px; margin: 5px 0; }
+    button { background: #6a1b9a; color: white; border: none; cursor: pointer; }
+    button:hover { background: #4a148c; }
+    ul { list-style: none; padding-left: 0; }
+    li { background: white; margin-bottom: 5px; padding: 10px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>From INIラジオ検索</h1>
+  <input type="text" id="searchInput" placeholder="メンバー名を入力してね" />
+  <button onclick="search()">検索</button>
+  <ul id="results"></ul>
+
+  <script>
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/1lQ9wN_VUECYTjzoAYbNsmlh-PS4pbY7v3rCpUuTQxBc/export?format=csv';
+
+    async function fetchCSV() {
+      const res = await fetch(csvUrl);
+      const text = await res.text();
+      const rows = text.trim().split('\n').map(row => row.split(','));
+      return rows;
+    }
+
+    async function search() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const data = await fetchCSV();
+      const header = data[0];
+      const rows = data.slice(1);
+
+      // メンバーがいる列を探して、その列にqueryがあるかチェック
+      const results = rows.filter(row => 
+        row.some(cell => cell.toLowerCase().includes(query))
+      );
+
+      displayResults(results, header);
+    }
+
+    function displayResults(results, header) {
+      const resultsEl = document.getElementById('results');
+      resultsEl.innerHTML = '';
+      if(results.length === 0) {
+        resultsEl.textContent = '該当する回が見つからなかったよ😢';
+        return;
+      }
+      results.forEach(row => {
+        const li = document.createElement('li');
+        li.textContent = header.map((h, i) => `${h}: ${row[i]}`).join(' | ');
+        resultsEl.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
