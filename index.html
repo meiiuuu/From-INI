@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>From INIラジオ複数メンバー検索</title>
+  <title>From INIラジオ複数メンバー検索（デバッグ用）</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
     h1 { color: #4a148c; }
@@ -14,7 +14,7 @@
   </style>
 </head>
 <body>
-  <h1>From INIラジオ複数メンバー検索</h1>
+  <h1>From INIラジオ複数メンバー検索（デバッグ用）</h1>
   <input type="text" id="searchInput" placeholder="メンバー名をカンマか空白で区切って入力" />
   <button onclick="search()">検索</button>
   <ul id="results"></ul>
@@ -28,12 +28,16 @@
     async function fetchCSV(url) {
       const res = await fetch(url);
       const text = await res.text();
+      console.log(`--- ${url} の内容 ---`);
+      console.log(text);
       return text.trim().split('\n').map(row => row.split(','));
     }
 
     async function fetchAllData() {
       const dataArrays = await Promise.all(csvUrls.map(url => fetchCSV(url)));
-      // dataArraysは二次元配列の配列だから平坦化する（ヘッダーは1回だけ使う）
+      console.log("1時台データ配列:", dataArrays[0]);
+      console.log("2時台データ配列:", dataArrays[1]);
+
       const [header, ...rows1] = dataArrays[0];
       const [, ...rows2] = dataArrays[1];
       return { header, rows: rows1.concat(rows2) };
@@ -42,6 +46,7 @@
     async function search() {
       const input = document.getElementById('searchInput').value.toLowerCase();
       const members = input.split(/[,\s]+/).filter(Boolean);
+      console.log("検索対象メンバー:", members);
 
       const { header, rows } = await fetchAllData();
 
@@ -50,6 +55,7 @@
           row.some(cell => cell.toLowerCase().includes(member))
         )
       );
+      console.log("検索結果:", results);
 
       displayResults(results, header);
     }
