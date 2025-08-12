@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>From INIラジオ検索</title>
+  <title>From INIラジオ複数メンバー検索</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
     h1 { color: #4a148c; }
@@ -14,8 +14,8 @@
   </style>
 </head>
 <body>
-  <h1>From INIラジオ検索</h1>
-  <input type="text" id="searchInput" placeholder="メンバー名を入力してね" />
+  <h1>From INIラジオ複数メンバー検索</h1>
+  <input type="text" id="searchInput" placeholder="メンバー名をカンマか空白で区切って入力" />
   <button onclick="search()">検索</button>
   <ul id="results"></ul>
 
@@ -30,14 +30,17 @@
     }
 
     async function search() {
-      const query = document.getElementById('searchInput').value.toLowerCase();
+      const input = document.getElementById('searchInput').value.toLowerCase();
+      const members = input.split(/[,\s]+/).filter(Boolean); // カンマや空白で分割して配列に
+
       const data = await fetchCSV();
       const header = data[0];
       const rows = data.slice(1);
 
-      // メンバーがいる列を探して、その列にqueryがあるかチェック
       const results = rows.filter(row => 
-        row.some(cell => cell.toLowerCase().includes(query))
+        members.every(member => 
+          row.some(cell => cell.toLowerCase().includes(member))
+        )
       );
 
       displayResults(results, header);
