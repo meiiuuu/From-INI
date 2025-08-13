@@ -45,7 +45,7 @@
 
       // カンマや空白で分割 → 記号削除
       const members = input.split(/[,\s]+/)
-        .map(m => m.replace(/[\s\(\)（）!！]/g, ''))
+        .map(m => m.replace(/[\s!！]/g, ''))
         .filter(Boolean);
 
       const { header, rows } = await fetchAllData();
@@ -53,7 +53,7 @@
       const results = rows.filter(row =>
         members.every(member =>
           row.some(cell =>
-            cell.toLowerCase().replace(/[\s\(\)（）!！]/g, '').includes(member)
+            cell.toLowerCase().replace(/[\s!！]/g, '').includes(member)
           )
         )
       );
