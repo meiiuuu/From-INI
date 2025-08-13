@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>From INIラジオ複数メンバー検索（デバッグ用）</title>
+  <title>From INIラジオ複数メンバー検索</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
     h1 { color: #4a148c; }
@@ -14,39 +14,38 @@
   </style>
 </head>
 <body>
-  <h1>From INIラジオ複数メンバー検索（デバッグ用）</h1>
+  <h1>From INIラジオ複数メンバー検索</h1>
   <input type="text" id="searchInput" placeholder="メンバー名をカンマか空白で区切って入力" />
   <button onclick="search()">検索</button>
   <ul id="results"></ul>
 
   <script>
     const csvUrls = [
-  'https://docs.google.com/spreadsheets/d/1DuVBQdcDBXMBGCn7J24QSPxBIhLNsUzbgEfAwmrxvZw/export?format=csv',
-  'https://docs.google.com/spreadsheets/d/1qUwNyw1Adfy5tEVgSIzcCtMZHvNN0T8GhyXZx8VGIGE/export?format=csv'
-];
+      'https://docs.google.com/spreadsheets/d/1DuVBQdcDBXMBGCn7J24QSPxBIhLNsUzbgEfAwmrxvZw/export?format=csv', // 1時台
+      'https://docs.google.com/spreadsheets/d/1qUwNyw1Adfy5tEVgSIzcCtMZHvNN0T8GhyXZx8VGIGE/export?format=csv'  // 2時台
+    ];
 
     async function fetchCSV(url) {
       const res = await fetch(url);
       const text = await res.text();
-      console.log(`--- ${url} の内容 ---`);
-      console.log(text);
       return text.trim().split('\n').map(row => row.split(','));
     }
 
     async function fetchAllData() {
       const dataArrays = await Promise.all(csvUrls.map(url => fetchCSV(url)));
-      console.log("1時台データ配列:", dataArrays[0]);
-      console.log("2時台データ配列:", dataArrays[1]);
-
+      
       const [header, ...rows1] = dataArrays[0];
       const [, ...rows2] = dataArrays[1];
+
+      // スマホでも見えるようにポップアップ
+      alert(`1時台: ${rows1.length}行, 2時台: ${rows2.length}行 読み込みました`);
+
       return { header, rows: rows1.concat(rows2) };
     }
 
     async function search() {
       const input = document.getElementById('searchInput').value.toLowerCase();
       const members = input.split(/[,\s]+/).filter(Boolean);
-      console.log("検索対象メンバー:", members);
 
       const { header, rows } = await fetchAllData();
 
@@ -55,7 +54,6 @@
           row.some(cell => cell.toLowerCase().includes(member))
         )
       );
-      console.log("検索結果:", results);
 
       displayResults(results, header);
     }
