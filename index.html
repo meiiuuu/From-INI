@@ -48,6 +48,8 @@
         .map(m => m.replace(/[\s!！]/g, ''))
         .filter(Boolean);
 
+      console.log("検索対象のキーワード配列:", members);
+
       const { header, rows } = await fetchAllData();
 
       const results = rows.filter(row =>
@@ -57,6 +59,8 @@
           )
         )
       );
+
+      console.log("検索結果行:", results);
 
       displayResults(results, header);
     }
