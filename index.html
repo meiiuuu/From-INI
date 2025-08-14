@@ -33,10 +33,14 @@
 
     async function fetchAllData() {
       const dataArrays = await Promise.all(csvUrls.map(url => fetchCSV(url)));
-      console.log(`デバッグ: 1時台:${dataArrays[0].length}行, 2時台: ${dataArrays[1].length}行 読み込みました`);
+      console.log(`デバッグ: 1時台:${dataArrays[0].length}行, 2時台:${dataArrays[1].length}行 読み込みました`);
 
-      const [header, ...rows1] = dataArrays[0];
-      const [, ...rows2] = dataArrays[1];
+      const [header1, ...rows1] = dataArrays[0];
+      const [header2, ...rows2] = dataArrays[1];
+
+      // もしヘッダー名が違う場所があれば、1時台のheaderを優先して統一
+      const header = header1.map((h, i) => header2[i] || h);
+
       return { header, rows: rows1.concat(rows2) };
     }
 
@@ -45,22 +49,18 @@
 
       // カンマや空白で分割 → 記号削除
       const members = input.split(/[,\s]+/)
-        .map(m => m.replace(/[\s!！]/g, ''))
+        .map(m => m.replace(/[\s\(\)（）!！]/g, ''))
         .filter(Boolean);
-
-      console.log("検索対象のキーワード配列:", members);
 
       const { header, rows } = await fetchAllData();
 
       const results = rows.filter(row =>
         members.every(member =>
           row.some(cell =>
-            cell.toLowerCase().replace(/[\s!！]/g, '').includes(member)
+            cell.toLowerCase().replace(/[\s\(\)（）!！]/g, '').includes(member)
           )
         )
       );
-
-      console.log("検索結果行:", results);
 
       displayResults(results, header);
     }
