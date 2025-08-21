@@ -4,13 +4,45 @@
   <meta charset="UTF-8" />
   <title>From INIラジオ複数メンバー検索</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
-    h1 { color: #4a148c; }
-    input, button { font-size: 1rem; padding: 8px; margin: 5px 0; }
-    button { background: #6a1b9a; color: white; border: none; cursor: pointer; }
-    button:hover { background: #4a148c; }
-    ul { list-style: none; padding-left: 0; }
-    li { background: white; margin-bottom: 5px; padding: 10px; border-radius: 5px; }
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      background: #f9f9f9; 
+    }
+    h1 { 
+      color: #4a148c; 
+    }
+    input, button { 
+      font-size: 1rem; 
+      padding: 8px; 
+      margin: 5px 0; 
+    }
+    button { 
+      background: #6a1b9a; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+    }
+    button:hover { 
+      background: #4a148c; 
+    }
+    ul { 
+      list-style: none; 
+      padding-left: 0; 
+    }
+    li { 
+      margin-bottom: 15px; 
+    }
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      line-height: 1.6;
+    }
+    .card p {
+      margin: 5px 0;
+    }
   </style>
 </head>
 <body>
@@ -33,7 +65,6 @@
 
     async function fetchAllData() {
       const dataArrays = await Promise.all(csvUrls.map(url => fetchCSV(url)));
-      console.log(`デバッグ: 1時台:${dataArrays[0].length}行, 2時台:${dataArrays[1].length}行 読み込みました`);
 
       const [header1, ...rows1] = dataArrays[0];
       const [header2, ...rows2] = dataArrays[1];
@@ -44,10 +75,13 @@
       return { header, rows: rows1.concat(rows2) };
     }
 
+    async function init() {
+      const { header, rows } = await fetchAllData();
+      displayResults(rows, header);
+    }
+
     async function search() {
       const input = document.getElementById('searchInput').value.toLowerCase();
-
-      // カンマや空白で分割 → 記号削除
       const members = input.split(/[,\s]+/)
         .map(m => m.replace(/[\s\(\)（）!！]/g, ''))
         .filter(Boolean);
@@ -74,10 +108,20 @@
       }
       results.forEach(row => {
         const li = document.createElement('li');
-        li.textContent = header.map((h, i) => `${h}: ${row[i]}`).join(' | ');
+        li.innerHTML = `
+          <div class="card">
+            <p>⏰ <strong>時間帯:</strong> ${row[0]}</p>
+            <p>#${row[1]}回</p>
+            <p>👥 <strong>メンバー:</strong> ${row.slice(2, -1).filter(Boolean).join(', ')}</p>
+            <p>🎤 <strong>ゲスト:</strong> ${row[row.length - 1] || 'ー'}</p>
+          </div>
+        `;
         resultsEl.appendChild(li);
       });
     }
+
+    // ページ読み込み時に一覧表示
+    init();
   </script>
 </body>
 </html>
