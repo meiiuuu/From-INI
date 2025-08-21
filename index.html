@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>From INIラジオ複数メンバー検索</title>
+  <title>From INIラジオメンバー検索</title>
   <style>
     body { 
       font-family: Arial, sans-serif; 
@@ -11,6 +11,7 @@
     }
     h1 { 
       color: #4a148c; 
+      margin-bottom: 15px;
     }
     input, button { 
       font-size: 1rem; 
@@ -43,29 +44,51 @@
     .card p {
       margin: 5px 0;
     }
+    /* 説明欄 */
+    .info-card {
+      background: #fff3e0; /* 薄いオレンジ */
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      margin-bottom: 20px;
+    }
+    .info-card h2 {
+      margin-top: 0;
+      color: #ff6f00; /* オレンジでアクセント */
+      font-size: 1.2rem;
+    }
+    .info-card ul {
+      padding-left: 20px;
+      margin: 0;
+    }
+    .info-card li {
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
-  <h1>From INIラジオ複数メンバー検索</h1>
+  <h1>From INIラジオメンバー検索</h1>
 
-  <div style="background:#fff3e0; padding:15px; border-radius:10px; margin-bottom:20px;">
-  <h2>🔍 調べ方のコツ</h2>
-  <ul>
-    <li>メンバー名はカンマか空白で区切って入力してね。</li>
-    <li>フルネームでも名前だけでもOK。入力した文字が含まれていれば検索されるよ。</li>
-    <li>ゲストは「ゲスト」と入れれば出てくるよ。</li>
-    <li>ケミ名での検索には対応していないので注意！</li>
-  </ul>
+  <!-- 説明欄 -->
+  <div class="info-card">
+    <h2>🔍 調べ方のコツ</h2>
+    <ul>
+      <li>メンバー名はカンマか空白で区切って入力。</li>
+      <li>フルネームでも名前だけでもOK。入力した文字が含まれていれば検索される。</li>
+      <li>ゲストは「ゲスト」と入れれば出てくる。</li>
+      <li>ケミ名での検索にはまだ対応していないので注意！</li>
+    </ul>
   </div>
-  
+
   <input type="text" id="searchInput" placeholder="メンバー名をカンマか空白で区切って入力" />
   <button onclick="search()">検索</button>
   <ul id="results"></ul>
 
   <script>
     const csvUrls = [
-      'https://docs.google.com/spreadsheets/d/1DuVBQdcDBXMBGCn7J24QSPxBIhLNsUzbgEfAwmrxvZw/export?format=csv', // 1時台
-      'https://docs.google.com/spreadsheets/d/1qUwNyw1Adfy5tEVgSIzcCtMZHvNN0T8GhyXZx8VGIGE/export?format=csv'  // 2時台
+      'https://docs.google.com/spreadsheets/d/1DuVBQdcDBXMBGCn7J24QSPxBIhLNsUzbgEfAwmrxvZw/export?format=csv',
+      'https://docs.google.com/spreadsheets/d/1qUwNyw1Adfy5tEVgSIzcCtMZHvNN0T8GhyXZx8VGIGE/export?format=csv'
     ];
 
     async function fetchCSV(url) {
@@ -80,9 +103,7 @@
       const [header1, ...rows1] = dataArrays[0];
       const [header2, ...rows2] = dataArrays[1];
 
-      // もしヘッダー名が違う場所があれば、1時台のheaderを優先して統一
       const header = header1.map((h, i) => header2[i] || h);
-
       return { header, rows: rows1.concat(rows2) };
     }
 
@@ -114,7 +135,7 @@
       const resultsEl = document.getElementById('results');
       resultsEl.innerHTML = '';
       if(results.length === 0) {
-        resultsEl.textContent = '該当する回が見つからなかったよ😢';
+        resultsEl.textContent = '該当する回が見つかりません😢';
         return;
       }
       results.forEach(row => {
