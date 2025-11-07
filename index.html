@@ -74,18 +74,16 @@
     <ul>
       <li>メンバー名はカンマか空白で区切って入力。</li>
       <li>フルネームでも名前だけでもOK。</li>
-      <li>ケミ名でも検索できます！（例：まさフェン、フェン西、たじたくなど）</li>
+      <li>ケミ名でも検索できる！（例：キム西、ふぁんたじー、たけたくなど）</li>
       <li>ゲストは「ゲスト」と入力すると出てきます。</li>
     </ul>
   </div>
 
-  <input type="text" id="searchInput" placeholder="メンバー名またはケミ名を入力" />
+  <input type="text" id="searchInput" placeholder="メンバー名・ケミ名で検索" />
   <button onclick="search()">検索</button>
   <ul id="results"></ul>
 
-  <!-- 💜 ケミデータ読み込み -->
   <script src="chemidata.js"></script>
-
   <script>
     const csvUrls = [
       'https://docs.google.com/spreadsheets/d/1DuVBQdcDBXMBGCn7J24QSPxBIhLNsUzbgEfAwmrxvZw/export?format=csv',
@@ -106,29 +104,29 @@
       return { header, rows: rows1.concat(rows2) };
     }
 
-    // 🔥 ケミ対応検索ロジック
     async function search() {
       const input = document.getElementById('searchInput').value.toLowerCase().trim();
-      if (!input) return;
+      const words = input.split(/[,\s]+/).filter(Boolean);
 
-      // ケミ名に一致する場合、該当メンバーを展開
-      let members = [];
-      const chemMatch = chemidata.find(c => c.names.includes(input));
-      if (chemMatch) {
-        members = chemMatch.members;
-      } else {
-        // 通常のカンマ・スペース区切り
-        members = input.split(/[,\s]+/)
-          .map(m => m.replace(/[\s\(\)（）!！]/g, ''))
-          .filter(Boolean);
+      // 🔍 ケミ名に対応
+      let memberNames = [];
+      for (const word of words) {
+        const match = chemidata.find(c =>
+          c.names.some(name => name.toLowerCase() === word)
+        );
+        if (match) {
+          memberNames.push(...match.members);
+        } else {
+          memberNames.push(word);
+        }
       }
 
       const { header, rows } = await fetchAllData();
 
       const results = rows.filter(row =>
-        members.every(member =>
+        memberNames.every(name =>
           row.some(cell =>
-            cell.toLowerCase().replace(/[\s\(\)（）!！]/g, '').includes(member)
+            cell.toLowerCase().replace(/[\s\(\)（）!！]/g, '').includes(name.toLowerCase().replace(/[\s\(\)（）!！]/g, ''))
           )
         )
       );
@@ -139,7 +137,7 @@
     function displayResults(results, header) {
       const resultsEl = document.getElementById('results');
       resultsEl.innerHTML = '';
-      if (results.length === 0) {
+      if(results.length === 0) {
         resultsEl.textContent = '該当する回が見つかりません😢';
         return;
       }
@@ -156,9 +154,6 @@
         resultsEl.appendChild(li);
       });
     }
-
-    // 初期表示
-    fetchAllData().then(({ header, rows }) => displayResults(rows, header));
   </script>
 </body>
 </html>
