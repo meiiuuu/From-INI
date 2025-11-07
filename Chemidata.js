@@ -57,3 +57,5 @@ const chemidata = [
   { names: ["佐野じん", "さのじん", "佐野迅"], members: ["佐野雄大", "松田迅"] },
   { names: ["マンネズ"], members: ["池﨑理人", "松田迅"] },
 ];
+
+console.log("✅ chemidata.js 読み込めてるよ！");
