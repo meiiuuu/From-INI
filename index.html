@@ -44,9 +44,8 @@
     .card p {
       margin: 5px 0;
     }
-    /* 説明欄 */
     .info-card {
-      background: #fff3e0; /* 薄いオレンジ */
+      background: #fff3e0;
       padding: 15px;
       border-radius: 12px;
       box-shadow: 0 3px 8px rgba(0,0,0,0.15);
@@ -54,7 +53,7 @@
     }
     .info-card h2 {
       margin-top: 0;
-      color: #ff6f00; /* オレンジでアクセント */
+      color: #ff6f00;
       font-size: 1.2rem;
     }
     .info-card ul {
@@ -70,22 +69,23 @@
 <body>
   <h1>From INIラジオメンバー検索</h1>
 
-  <!-- 説明欄 -->
   <div class="info-card">
     <h2>🔍 調べ方のコツ</h2>
     <ul>
       <li>メンバー名はカンマか空白で区切って入力。</li>
-      <li>フルネームでも名前だけでもOK。入力した文字が含まれていれば検索されます。</li>
-      <li>ゲストはゲストと入力すると出てきます。</li>
-      <li>ケミ名検索対応済！</li>
+      <li>フルネームでも名前だけでもOK。</li>
+      <li>ケミ名でも検索できます！（例：まさフェン、フェン西、たじたくなど）</li>
+      <li>ゲストは「ゲスト」と入力すると出てきます。</li>
     </ul>
   </div>
 
-  <input type="text" id="searchInput" placeholder="メンバー名をカンマか空白で区切って入力" />
+  <input type="text" id="searchInput" placeholder="メンバー名またはケミ名を入力" />
   <button onclick="search()">検索</button>
   <ul id="results"></ul>
 
+  <!-- 💜 ケミデータ読み込み -->
   <script src="chemidata.js"></script>
+
   <script>
     const csvUrls = [
       'https://docs.google.com/spreadsheets/d/1DuVBQdcDBXMBGCn7J24QSPxBIhLNsUzbgEfAwmrxvZw/export?format=csv',
@@ -100,24 +100,28 @@
 
     async function fetchAllData() {
       const dataArrays = await Promise.all(csvUrls.map(url => fetchCSV(url)));
-
       const [header1, ...rows1] = dataArrays[0];
       const [header2, ...rows2] = dataArrays[1];
-
       const header = header1.map((h, i) => header2[i] || h);
       return { header, rows: rows1.concat(rows2) };
     }
 
-    async function init() {
-      const { header, rows } = await fetchAllData();
-      displayResults(rows, header);
-    }
-
+    // 🔥 ケミ対応検索ロジック
     async function search() {
-      const input = document.getElementById('searchInput').value.toLowerCase();
-      const members = input.split(/[,\s]+/)
-        .map(m => m.replace(/[\s\(\)（）!！]/g, ''))
-        .filter(Boolean);
+      const input = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!input) return;
+
+      // ケミ名に一致する場合、該当メンバーを展開
+      let members = [];
+      const chemMatch = chemidata.find(c => c.names.includes(input));
+      if (chemMatch) {
+        members = chemMatch.members;
+      } else {
+        // 通常のカンマ・スペース区切り
+        members = input.split(/[,\s]+/)
+          .map(m => m.replace(/[\s\(\)（）!！]/g, ''))
+          .filter(Boolean);
+      }
 
       const { header, rows } = await fetchAllData();
 
@@ -135,7 +139,7 @@
     function displayResults(results, header) {
       const resultsEl = document.getElementById('results');
       resultsEl.innerHTML = '';
-      if(results.length === 0) {
+      if (results.length === 0) {
         resultsEl.textContent = '該当する回が見つかりません😢';
         return;
       }
@@ -153,8 +157,8 @@
       });
     }
 
-    // ページ読み込み時に一覧表示
-    init();
+    // 初期表示
+    fetchAllData().then(({ header, rows }) => displayResults(rows, header));
   </script>
 </body>
 </html>
