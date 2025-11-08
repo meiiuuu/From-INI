@@ -46,7 +46,7 @@
     }
     /* 説明欄 */
     .info-card {
-      background: #fff3e0; /* 薄いオレンジ */
+      background: #fff3e0;
       padding: 15px;
       border-radius: 12px;
       box-shadow: 0 3px 8px rgba(0,0,0,0.15);
@@ -54,7 +54,7 @@
     }
     .info-card h2 {
       margin-top: 0;
-      color: #ff6f00; /* オレンジでアクセント */
+      color: #ff6f00;
       font-size: 1.2rem;
     }
     .info-card ul {
@@ -77,11 +77,11 @@
       <li>メンバー名はカンマか空白で区切って入力。</li>
       <li>フルネームでも名前だけでもOK。入力した文字が含まれていれば検索されます。</li>
       <li>ゲストはゲストと入力すると出てきます。</li>
-      <li>ケミ名での検索にはまだ対応していないので注意！</li>
+      <li>ケミ検索にも対応してます。</li>
     </ul>
   </div>
 
-  <input type="text" id="searchInput" placeholder="メンバー名をカンマか空白で区切って入力" />
+  <input type="text" id="searchInput" placeholder="メンバー名 or ケミ名を入力" />
   <button onclick="search()">検索</button>
   <ul id="results"></ul>
 
@@ -91,6 +91,23 @@
       'https://docs.google.com/spreadsheets/d/1qUwNyw1Adfy5tEVgSIzcCtMZHvNN0T8GhyXZx8VGIGE/export?format=csv'
     ];
 
+    // 💜 ケミ名 → メンバー対応表
+    const kemiMap = {
+      'キム西': ['木村柾哉', '西洸人'],
+      'フェン西': ['許豊凡', '西洸人'],
+      'たじ西': ['田島将吾', '西洸人'],
+      'まさフェン': ['木村柾哉', '許豊凡'],
+      'フェンたく': ['許豊凡', '尾崎匠海'],
+      'ましゃたく': ['木村柾哉', '尾崎匠海'],
+      'フェン牧': ['許豊凡', '後藤威尊'],
+      '佐野たじ': ['佐野雄大', '田島将吾'],
+      'りひ牧': ['後藤威尊', '髙塚大夢'],
+      'たじ牧': ['田島将吾', '後藤威尊'],
+      '佐野迅': ['佐野雄大', '髙塚大夢'],
+      'フェンろむ': ['許豊凡', '髙塚大夢']
+      // 🔁 他のケミもここに追加してOK！
+    };
+
     async function fetchCSV(url) {
       const res = await fetch(url);
       const text = await res.text();
@@ -99,42 +116,49 @@
 
     async function fetchAllData() {
       const dataArrays = await Promise.all(csvUrls.map(url => fetchCSV(url)));
-
       const [header1, ...rows1] = dataArrays[0];
       const [header2, ...rows2] = dataArrays[1];
-
       const header = header1.map((h, i) => header2[i] || h);
       return { header, rows: rows1.concat(rows2) };
     }
 
-    async function init() {
-      const { header, rows } = await fetchAllData();
-      displayResults(rows, header);
-    }
-
     async function search() {
-      const input = document.getElementById('searchInput').value.toLowerCase();
-      const members = input.split(/[,\s]+/)
-        .map(m => m.replace(/[\s\(\)（）!！]/g, ''))
-        .filter(Boolean);
+      const input = document.getElementById('searchInput').value.trim().toLowerCase();
+      if (!input) return;
 
       const { header, rows } = await fetchAllData();
+      let members = [];
 
+      // 💡 ケミ検索チェック
+      for (const [kemi, pair] of Object.entries(kemiMap)) {
+        if (input.includes(kemi.toLowerCase())) {
+          members.push(...pair);
+        }
+      }
+
+      // 通常検索
+      if (members.length === 0) {
+        members = input.split(/[,\s]+/)
+          .map(m => m.replace(/[\s\(\)（）!！]/g, ''))
+          .filter(Boolean);
+      }
+
+      // 🔍 検索ロジック
       const results = rows.filter(row =>
         members.every(member =>
           row.some(cell =>
-            cell.toLowerCase().replace(/[\s\(\)（）!！]/g, '').includes(member)
+            cell.toLowerCase().replace(/[\s\(\)（）!！]/g, '').includes(member.toLowerCase())
           )
         )
       );
 
-      displayResults(results, header);
+      displayResults(results, header, members);
     }
 
-    function displayResults(results, header) {
+    function displayResults(results, header, members) {
       const resultsEl = document.getElementById('results');
       resultsEl.innerHTML = '';
-      if(results.length === 0) {
+      if (results.length === 0) {
         resultsEl.textContent = '該当する回が見つかりません😢';
         return;
       }
@@ -153,7 +177,10 @@
     }
 
     // ページ読み込み時に一覧表示
-    init();
+    (async () => {
+      const { header, rows } = await fetchAllData();
+      displayResults(rows, header);
+    })();
   </script>
 </body>
 </html>
