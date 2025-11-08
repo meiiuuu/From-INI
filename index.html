@@ -85,28 +85,12 @@
   <button onclick="search()">検索</button>
   <ul id="results"></ul>
 
+  <script src="chemidata.js"></script>
   <script>
     const csvUrls = [
       'https://docs.google.com/spreadsheets/d/1DuVBQdcDBXMBGCn7J24QSPxBIhLNsUzbgEfAwmrxvZw/export?format=csv',
       'https://docs.google.com/spreadsheets/d/1qUwNyw1Adfy5tEVgSIzcCtMZHvNN0T8GhyXZx8VGIGE/export?format=csv'
     ];
-
-    // 💜 ケミ名 → メンバー対応表
-    const kemiMap = {
-      'キム西': ['木村柾哉', '西洸人'],
-      'フェン西': ['許豊凡', '西洸人'],
-      'たじ西': ['田島将吾', '西洸人'],
-      'まさフェン': ['木村柾哉', '許豊凡'],
-      'フェンたく': ['許豊凡', '尾崎匠海'],
-      'ましゃたく': ['木村柾哉', '尾崎匠海'],
-      'フェン牧': ['許豊凡', '後藤威尊'],
-      '佐野たじ': ['佐野雄大', '田島将吾'],
-      'りひ牧': ['後藤威尊', '髙塚大夢'],
-      'たじ牧': ['田島将吾', '後藤威尊'],
-      '佐野迅': ['佐野雄大', '髙塚大夢'],
-      'フェンろむ': ['許豊凡', '髙塚大夢']
-      // 🔁 他のケミもここに追加してOK！
-    };
 
     async function fetchCSV(url) {
       const res = await fetch(url);
